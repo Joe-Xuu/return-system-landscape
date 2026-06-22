@@ -135,7 +135,7 @@ return-incentive-collection-system/
 | 全局统计 | `getStats` | GET | Raspi显示 | 返回totalBorrows + 前5排行榜 |
 
 **部署:** Google Apps Script → `https://script.google.com/macros/s/.../exec`
-**代码位置:** Google Apps Script 编辑器（不在本仓库，参见[GAS代码参考](#gas代码参考)）
+**代码位置:** Google Apps Script 编辑器（参见[GAS代码参考](#gas代码参考)）
 
 ### 3. Google Sheets（数据库）
 

@@ -135,7 +135,7 @@ return-incentive-collection-system/
 | 全体統計 | `getStats` | GET | Raspi表示 | totalBorrows + トップ5ランキング |
 
 **デプロイ先:** Google Apps Script → `https://script.google.com/macros/s/.../exec`
-**コード:** Google Apps Scriptエディタ（本リポジトリには含まれません → [GASコードリファレンス](#gasコードリファレンス)参照）
+**コード:** Google Apps Scriptエディタ（[GASコードリファレンス](#gasコードリファレンス)参照）
 
 ### 3. Google Sheets（データベース）
 

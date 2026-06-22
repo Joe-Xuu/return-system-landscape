@@ -48,7 +48,7 @@ Users borrow containers via LINE LIFF, return via NFC + Raspberry Pi, earn point
 │  └──────────────────────────────────────────────────────────────────┘  │
 │                                                                         │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │                    LIFF Frontend (this repo)                      │  │
+│  │                    LIFF Frontends (Browser)                       │  │
 │  │  GitHub Pages → liff.line.me/2008626930-pLAvndnp                  │  │
 │  │  ┌────────────┐  ┌──────────┐  ┌──────────┐                     │  │
 │  │  │ index.html │  │ style.css│  │  app.js  │                     │  │
@@ -135,7 +135,7 @@ return-incentive-collection-system/
 | Get Stats | `getStats` | GET | Raspi Dashboard | Return totalBorrows + top 5 leaderboard |
 
 **Deploy:** Google Apps Script → `https://script.google.com/macros/s/.../exec`
-**Code location:** Google Apps Script Editor (not in this repo — see [GAS Code Reference](#gas-code-reference) below)
+**Code location:** Google Apps Script Editor (see [GAS Code Reference](#gas-code-reference) below)
 
 ### 3. Google Sheets (Database)
 
