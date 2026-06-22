@@ -102,7 +102,7 @@ return-liff-frontend/
 
 Check-your-status dashboard: profile, points, current borrowing. Opened via LINE Rich Menu.
 
-**Repo:** [`Joe-Xuu/return-incentive-collection-system`](https://github.com/Joe-Xuu/return-incentive-collection-system) ← THIS REPO  
+**Repo:** [`Joe-Xuu/return-incentive-collection-system`](https://github.com/Joe-Xuu/return-incentive-collection-system)   
 **LIFF ID:** `2008626930-pLAvndnp`
 
 ```
@@ -283,26 +283,25 @@ Response: { status: "success", action: "updateName" }
 
 | Repo | What | GitHub |
 |------|------|--------|
-| **Dashboard LIFF** | User status dashboard (Profile + Borrowing) | `Joe-Xuu/return-incentive-collection-system` ← THIS REPO |
+| **Dashboard LIFF** | User status dashboard (Profile + Borrowing) | `Joe-Xuu/return-incentive-collection-system`  |
 | **Borrow LIFF** | Student borrow screen (NFC → borrow → leaderboard) | `Joe-Xuu/return-liff-frontend` |
 | **Raspi Station** | NFC daemon + Flask SSE + leaderboard display | `Joe-Xuu/return-system` (private) |
 | **Landscape** | Architecture overview (this README) | `Joe-Xuu/return-system-landscape` |
 | **GAS Backend** | Google Apps Script API server | GAS Editor (code in [GAS Code Reference](#gas-code-reference)) |
 
-### This Repo Structure
+### Dashboard LIFF Structure
 
 ```
-incentive-collect-system/          ← Dashboard LIFF
+return-incentive-collection-system/
 ├── index.html                     # App shell + all UI cards
 ├── style.css                      # Full stylesheet (CSS variables, cards, typography)
 ├── app.js                         # LIFF init, GAS fetch, render logic
-├── README.md                      # ← You are here
 └── line-entry/
     ├── rich-menu-preview.html     # Canvas PNG generator for LINE Rich Menu
     └── rich-menu-config.json      # Tap area bounds
 ```
 
-### Code NOT in any repo (deployed elsewhere)
+### Code deployed elsewhere
 
 | Code | Location |
 |------|----------|

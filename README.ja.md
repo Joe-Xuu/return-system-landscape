@@ -102,7 +102,7 @@ return-liff-frontend/
 
 自分の貸出状況・ポイント・現在借りている容器を確認するダッシュボード。LINEリッチメニューから起動。
 
-**リポジトリ:** [`Joe-Xuu/return-incentive-collection-system`](https://github.com/Joe-Xuu/return-incentive-collection-system) ← このリポジトリ  
+**リポジトリ:** [`Joe-Xuu/return-incentive-collection-system`](https://github.com/Joe-Xuu/return-incentive-collection-system)   
 **LIFF ID:** `2008626930-pLAvndnp`
 
 ```
@@ -283,26 +283,25 @@ Response: { status: "success", action: "updateName" }
 
 | リポジトリ | 内容 | GitHub |
 |------|------|--------|
-| **Dashboard LIFF** | ユーザー状態ダッシュボード（プロフィール + 借出中） | `Joe-Xuu/return-incentive-collection-system` ← このリポジトリ |
+| **Dashboard LIFF** | ユーザー状態ダッシュボード（プロフィール + 借出中） | `Joe-Xuu/return-incentive-collection-system`  |
 | **Borrow LIFF** | 学生用貸出画面（NFC → 借出 → ランキング） | `Joe-Xuu/return-liff-frontend` |
 | **Raspi Station** | NFCデーモン + Flask SSE + ランキング表示 | `Joe-Xuu/return-system`（プライベート） |
 | **Landscape** | アーキテクチャ概要（本README） | `Joe-Xuu/return-system-landscape` |
 | **GAS Backend** | Google Apps Script APIサーバー | GASエディタ（コードは[GASコードリファレンス](#gasコードリファレンス)参照） |
 
-### このリポジトリの構成
+### Dashboard LIFFの構成
 
 ```
-incentive-collect-system/          ← Dashboard LIFF
+return-incentive-collection-system/
 ├── index.html                     # アプリシェル + 全UIカード
 ├── style.css                      # 全スタイルシート（CSS変数、カード、タイポグラフィ）
 ├── app.js                         # LIFF init、GASフェッチ、表示ロジック
-├── README.md                      # ← このファイル
 └── line-entry/
     ├── rich-menu-preview.html     # LINEリッチメニュー用Canvas PNGジェネレーター
     └── rich-menu-config.json      # タップ領域設定
 ```
 
-### リポジトリ外のコード（別途デプロイ）
+### 別途デプロイされているコード
 
 | コード | 場所 |
 |------|----------|

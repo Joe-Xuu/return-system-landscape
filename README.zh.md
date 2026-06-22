@@ -102,7 +102,7 @@ return-liff-frontend/
 
 查看借用状态、积分和当前借用容器的仪表盘。通过 LINE Rich Menu 打开。
 
-**仓库:** [`Joe-Xuu/return-incentive-collection-system`](https://github.com/Joe-Xuu/return-incentive-collection-system) ← 本仓库  
+**仓库:** [`Joe-Xuu/return-incentive-collection-system`](https://github.com/Joe-Xuu/return-incentive-collection-system)   
 **LIFF ID:** `2008626930-pLAvndnp`
 
 ```
@@ -283,26 +283,25 @@ NFC标签 → return_core.py (MFRC522)
 
 | 仓库 | 内容 | GitHub |
 |------|------|--------|
-| **Dashboard LIFF** | 用户状态仪表盘（个人资料 + 借用中） | `Joe-Xuu/return-incentive-collection-system` ← 本仓库 |
+| **Dashboard LIFF** | 用户状态仪表盘（个人资料 + 借用中） | `Joe-Xuu/return-incentive-collection-system`  |
 | **Borrow LIFF** | 学生借用界面（NFC → 借用 → 排行榜） | `Joe-Xuu/return-liff-frontend` |
 | **Raspi 站点** | NFC守护进程 + Flask SSE + 排行榜显示 | `Joe-Xuu/return-system`（私有） |
 | **Landscape** | 架构总览（本README） | `Joe-Xuu/return-system-landscape` |
 | **GAS 后端** | Google Apps Script API服务器 | GAS编辑器（代码见[GAS代码参考](#gas代码参考)） |
 
-### 本仓库结构
+### Dashboard LIFF 结构
 
 ```
-incentive-collect-system/          ← Dashboard LIFF
+return-incentive-collection-system/
 ├── index.html                     # 应用外壳 + 全部UI卡片
 ├── style.css                      # 完整样式表（CSS变量、卡片、排版）
 ├── app.js                         # LIFF初始化、GAS获取、渲染逻辑
-├── README.md                      # ← 当前文件
 └── line-entry/
     ├── rich-menu-preview.html     # LINE Rich Menu Canvas PNG生成器
     └── rich-menu-config.json      # 点击区域配置
 ```
 
-### 不在仓库中的代码（另行部署）
+### 另行部署的代码
 
 | 代码 | 位置 |
 |------|----------|
