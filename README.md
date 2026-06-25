@@ -319,8 +319,8 @@ When editing, copy from here → paste into Google Apps Script Editor → Deploy
 
 ```javascript
 // ====== Configuration ======
-const SPREADSHEET_ID = '19yL67pjWXKzhO6i-WYEQGaL2fi_ElHmdi7XiL1oCAIg';
-const LINE_CHANNEL_ACCESS_TOKEN = 'rRvqoZurif4mU6w8tGHe+h4ru34KjdVwsEwfFCYchaOHKodrWOk+bnw1biF9AsdE5NDuMuVNDMJw5T9fnOxcrx7LHr3oQNGlZVBG2q6BvUP8uRGLoVr+2/Z5X/388YNA3UM3tGla2mJvIRnUq2UAXQdB04t89/1O/w1cDnyilFU=';
+const SPREADSHEET_ID = '***HIDDEN***';
+const LINE_CHANNEL_ACCESS_TOKEN = '***HIDDEN***';
 const LOGS_SHEET_NAME = 'Logs';
 const USERS_SHEET_NAME = 'Users';
 const MAPPING_SHEET_NAME = 'Mapping';
