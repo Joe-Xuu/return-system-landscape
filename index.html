@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-en="Re:Turn — O2O Container Borrowing System" data-ja="Re:Turn — O2O 容器貸出・回収システム" data-zh="Re:Turn — O2O 容器借用系统">Re:Turn — O2O Container Borrowing System</title>
+<style>
+/* ===== Reset & Variables ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#06C755;--green-dark:#059444;--green-light:#e8f7ee;
+  --bg:#f8faf9;--card:#fff;--text:#1a1a2e;--text-secondary:#555;
+  --border:#e0e5e2;--code-bg:#1e1e2a;--code-text:#e0e0e0;
+  --radius:12px;--shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08);
+  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"JetBrains Mono","Fira Code","SF Mono",Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+a{color:var(--green-dark);text-decoration:none;transition:color .2s}
+a:hover{color:var(--green);text-decoration:underline}
+
+/* ===== Header ===== */
+header{
+  background:linear-gradient(135deg,var(--green),var(--green-dark));
+  color:#fff;padding:48px 24px 40px;text-align:center;
+}
+header h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-.02em}
+header p{font-size:1.1rem;opacity:.9;margin-top:8px;max-width:640px;margin-inline:auto}
+
+/* ===== Toolbar ===== */
+.toolbar{
+  display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:16px 24px;background:var(--card);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;box-shadow:var(--shadow);
+}
+.lang-btn,.lock-btn{
+  padding:8px 16px;border:2px solid var(--border);background:var(--card);
+  border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;
+  transition:all .2s;font-family:var(--font);color:var(--text);
+}
+.lang-btn:hover,.lock-btn:hover{background:var(--green-light);border-color:var(--green)}
+.lang-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
+.lock-btn{display:flex;align-items:center;gap:6px}
+.lock-btn.unlocked{background:var(--green-light);border-color:var(--green);color:var(--green-dark)}
+.lock-icon{font-size:1.1rem}
+
+/* ===== Layout ===== */
+main{max-width:960px;margin:0 auto;padding:32px 24px 64px}
+section{margin-bottom:48px}
+section h2{
+  font-size:1.5rem;font-weight:700;color:var(--text);
+  padding-bottom:8px;border-bottom:2px solid var(--green);margin-bottom:24px;
+}
+section h3{font-size:1.15rem;font-weight:700;margin:24px 0 12px;color:var(--green-dark)}
+
+/* ===== Cards ===== */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px;margin-bottom:20px;box-shadow:var(--shadow);
+  transition:box-shadow .2s;
+}
+.card:hover{box-shadow:var(--shadow-md)}
+.card h4{font-size:1.05rem;font-weight:700;margin-bottom:8px;color:var(--green-dark)}
+.card .repo{font-size:.85rem;color:var(--text-secondary);margin-bottom:12px}
+.card .repo a{font-weight:600}
+
+/* ===== Code Blocks ===== */
+pre{
+  background:var(--code-bg);color:var(--code-text);border-radius:var(--radius);
+  padding:20px 24px;overflow-x:auto;font-family:var(--font-mono);font-size:.82rem;
+  line-height:1.6;margin:16px 0;
+  border:1px solid rgba(255,255,255,.05);
+}
+pre .kw{color:#c792ea}.pre .str{color:#c3e88d}.pre .cm{color:#676e95}.pre .fn{color:#82aaff}
+
+/* ===== Tables ===== */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--green-light);font-weight:700;color:var(--green-dark);white-space:nowrap}
+tr:hover td{background:#fafbfa}
+td code{background:var(--green-light);padding:2px 6px;border-radius:4px;font-size:.82em}
+
+/* ===== Protected Links ===== */
+.protected-link{
+  display:inline-flex;align-items:center;gap:4px;
+  background:#fff3cd;border:1px dashed #e6c842;padding:3px 10px;
+  border-radius:6px;font-family:var(--font-mono);font-size:.82rem;
+  color:#856404;cursor:pointer;transition:all .2s;
+}
+.protected-link:hover{background:#fff0b3}
+.protected-link.revealed{
+  background:var(--green-light);border:1px solid var(--green);color:var(--green-dark);
+  cursor:default;
+}
+.protected-link.revealed a{color:var(--green-dark);font-weight:600}
+
+/* ===== Password Modal ===== */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+  z-index:999;justify-content:center;align-items:center;
+  backdrop-filter:blur(2px);
+}
+.modal-overlay.active{display:flex}
+.modal{
+  background:var(--card);border-radius:var(--radius);padding:32px;
+  max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);
+  text-align:center;
+}
+.modal h3{font-size:1.3rem;margin-bottom:8px}
+.modal p{color:var(--text-secondary);font-size:.88rem;margin-bottom:20px}
+.modal input{
+  width:100%;padding:12px 16px;border:2px solid var(--border);border-radius:8px;
+  font-size:1rem;font-family:var(--font);text-align:center;
+  transition:border-color .2s;outline:none;
+}
+.modal input:focus{border-color:var(--green)}
+.modal .btn-row{display:flex;gap:10px;margin-top:16px}
+.modal button{
+  flex:1;padding:10px;border-radius:8px;font-size:.9rem;font-weight:600;
+  cursor:pointer;transition:all .2s;font-family:var(--font);
+}
+.modal .btn-submit{background:var(--green);color:#fff;border:none}
+.modal .btn-submit:hover{background:var(--green-dark)}
+.modal .btn-cancel{background:var(--card);border:2px solid var(--border);color:var(--text-secondary)}
+.modal .btn-cancel:hover{border-color:#aaa}
+.modal .error{color:#e74c3c;font-size:.82rem;margin-top:8px;display:none}
+.modal .error.show{display:block}
+
+/* ===== Details (collapsible) ===== */
+details{margin:16px 0}
+summary{
+  padding:14px 18px;background:var(--green-light);border-radius:8px;
+  font-weight:700;cursor:pointer;color:var(--green-dark);
+  border:1px solid var(--green);user-select:none;
+  transition:background .2s;
+}
+summary:hover{background:#d4f0df}
+details[open] summary{border-radius:8px 8px 0 0}
+
+/* ===== API Blocks ===== */
+.api-block{background:var(--code-bg);color:var(--code-text);border-radius:var(--radius);padding:16px 20px;margin:12px 0;font-family:var(--font-mono);font-size:.8rem;overflow-x:auto}
+
+/* ===== Footer ===== */
+footer{text-align:center;padding:32px 24px;color:var(--text-secondary);font-size:.85rem;border-top:1px solid var(--border)}
+
+/* ===== Responsive ===== */
+@media(max-width:640px){
+  header{padding:32px 16px 28px}
+  main{padding:24px 16px 48px}
+  .card{padding:16px}
+  pre{padding:14px 16px;font-size:.75rem}
+  .toolbar{gap:6px;padding:12px 16px}
+  .lang-btn,.lock-btn{padding:6px 12px;font-size:.78rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header>
+  <h1 data-en="Re:Turn" data-ja="Re:Turn" data-zh="Re:Turn">Re:Turn</h1>
+  <p data-en="Zero-friction circular container borrowing & incentive system. Borrow via LINE LIFF, return via NFC + Raspberry Pi, earn points tracked on Google Sheets."
+     data-ja="フリクションレスのO2Oサーキュラー容器貸出＆インセンティブシステム。LINE LIFFで容器を借り、NFC+Raspberry Piで返却、Google Sheetsでポイントを管理。"
+     data-zh="零摩擦的 O2O 循环容器借用与激励机制。通过 LINE LIFF 借用容器，通过 NFC + Raspberry Pi 归还，积分记录在 Google Sheets 上。">
+    Zero-friction circular container borrowing & incentive system.
+  </p>
+</header>
+
+<!-- ===== Toolbar ===== -->
+<div class="toolbar">
+  <button class="lang-btn active" onclick="switchLang('en')" data-lang="en">🇬🇧 EN</button>
+  <button class="lang-btn" onclick="switchLang('ja')" data-lang="ja">🇯🇵 日本語</button>
+  <button class="lang-btn" onclick="switchLang('zh')" data-lang="zh">🇨🇳 中文</button>
+  <span style="color:var(--border);margin:0 4px">|</span>
+  <button class="lock-btn" id="lockBtn" onclick="togglePasswordModal()">
+    <span class="lock-icon">🔒</span>
+    <span data-en="Unlock Links" data-ja="リンクを解除" data-zh="解锁链接">Unlock Links</span>
+  </button>
+</div>
+
+<main>
+
+<!-- ===== System Architecture ===== -->
+<section id="architecture">
+  <h2 data-en="System Architecture" data-ja="システムアーキテクチャ" data-zh="系统架构">System Architecture</h2>
+  <pre>
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           Re:Turn System                                │
+│                                                                         │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────────────────┐  │
+│  │   LINE App    │    │  NFC + Raspi │    │   Raspi Display           │  │
+│  │  (User Phone) │    │  (Borrow/Ret)│    │   (Leaderboard + CO2)     │  │
+│  │               │    │              │    │                           │  │
+│  │ Borrow LIFF ──┼────┤ NFC tag scan │    │ Flask SSE ← return_core   │  │
+│  │ Dashboard ────┼──┐ │ return POST  │    │ UI polls GAS getStats     │  │
+│  └───────────────┘  │ └──────┬───────┘    └────────────┬─────────────┘  │
+│                     │        │                         │                 │
+│                     │ LIFF   │ HTTP POST               │ HTTP GET        │
+│                     │ SDK v2 │                         │                 │
+│                     ▼        ▼                         ▼                 │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │                   Google Apps Script (GAS)                        │  │
+│  │  ┌─────────────┐  ┌──────────────┐  ┌────────────────────────┐   │  │
+│  │  │ doPost()    │  │ doGet()      │  │ sendLineMessage()      │   │  │
+│  │  │ • borrow    │  │ • getStats   │  │ LINE Messaging API     │   │  │
+│  │  │ • return    │  │ • getDashboard│  │ Push notifications    │   │  │
+│  │  │ • updateName│  │              │  │                        │   │  │
+│  │  │ • getDashboard│ │              │  │                        │   │  │
+│  │  └──────┬──────┘  └──────┬───────┘  └────────────┬───────────┘   │  │
+│  └─────────┼────────────────┼───────────────────────┼───────────────┘  │
+│            │                │                       │                   │
+│            ▼                ▼                       ▼                   │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │                     Google Sheets (Database)                      │  │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐                       │  │
+│  │  │  Users   │  │   Logs   │  │ Mapping  │                       │  │
+│  │  └──────────┘  └──────────┘  └──────────┘                       │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                         │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │                    LIFF Frontends (Browser)                       │  │
+│  │  GitHub Pages → liff.line.me/2008626930-pLAvndnp                  │  │
+│  │  ┌────────────┐  ┌──────────┐  ┌──────────┐                     │  │
+│  │  │ index.html │  │ style.css│  │  app.js  │                     │  │
+│  │  └────────────┘  └──────────┘  └──────────┘                     │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘</pre>
+
+  <h3 data-en="Data Flow" data-ja="データフロー" data-zh="数据流">Data Flow</h3>
+  <pre>
+<span data-en="BORROW:  NFC/Raspi → GAS doPost(action=borrow)     → Sheets(Logs+Users) → LINE Push(user)"
+      data-ja="貸出:  NFC/Raspi → GAS doPost(action=borrow)     → Sheets(Logs+Users) → LINE Push(ユーザー)"
+      data-zh="借用:  NFC/Raspi → GAS doPost(action=borrow)     → Sheets(Logs+Users) → LINE 推送(用户)">BORROW:  NFC/Raspi → GAS doPost(action=borrow)     → Sheets(Logs+Users) → LINE Push(user)</span>
+<span data-en="RETURN:  NFC/Raspi → GAS doPost(action=return)     → Sheets(Logs)      → LINE Push(user)"
+      data-ja="返却:  NFC/Raspi → GAS doPost(action=return)     → Sheets(Logs)      → LINE Push(ユーザー)"
+      data-zh="归还:  NFC/Raspi → GAS doPost(action=return)     → Sheets(Logs)      → LINE 推送(用户)">RETURN:  NFC/Raspi → GAS doPost(action=return)     → Sheets(Logs)      → LINE Push(user)</span>
+<span data-en="DASHBOARD: User opens LIFF → GAS doGet/getDashboard → Sheets(Users+Logs) → LIFF renders"
+      data-ja="ダッシュボード: LIFF起動 → GAS doGet/getDashboard → Sheets(Users+Logs) → LIFF表示"
+      data-zh="仪表盘: 用户打开LIFF → GAS doGet/getDashboard → Sheets(Users+Logs) → LIFF渲染">DASHBOARD: User opens LIFF → GAS doGet/getDashboard → Sheets(Users+Logs) → LIFF renders</span>
+<span data-en="LEADERBOARD: Raspi display → GAS doGet(getStats)   → Sheets(Users)     → Raspi renders"
+      data-ja="ランキング: Raspi表示 → GAS doGet(getStats)     → Sheets(Users)     → Raspi表示"
+      data-zh="排行榜: Raspi显示 → GAS doGet(getStats)     → Sheets(Users)     → Raspi渲染">LEADERBOARD: Raspi display → GAS doGet(getStats)   → Sheets(Users)     → Raspi renders</span></pre>
+</section>
+
+<!-- ===== Component Index ===== -->
+<section id="components">
+  <h2 data-en="Component Index" data-ja="コンポーネント一覧" data-zh="组件索引">Component Index</h2>
+
+  <!-- 1a. Borrow LIFF -->
+  <div class="card">
+    <h4 data-en="1a. Borrow LIFF (Student Borrow Screen)"
+        data-ja="1a. Borrow LIFF（学生用 貸出画面）"
+        data-zh="1a. Borrow LIFF（学生借用界面）">1a. Borrow LIFF (Student Borrow Screen)</h4>
+    <p class="repo">
+      <span data-en="Repo:" data-ja="リポジトリ:" data-zh="仓库:">Repo:</span>
+      <a href="https://github.com/Joe-Xuu/return-liff-frontend" target="_blank">Joe-Xuu/return-liff-frontend</a>
+      &nbsp;·&nbsp;
+      <span data-en="LIFF ID:" data-ja="LIFF ID:" data-zh="LIFF ID:">LIFF ID:</span> <code>2008626930-AddPwDy7</code>
+    </p>
+    <pre>
+return-liff-frontend/
+├── index.html         # <span data-en="Full app (inline CSS + JS): splash → borrow → success + leaderboard"
+                              data-ja="単一HTML（CSS+JS内蔵）: スプラッシュ → 貸出 → 成功 + ランキング"
+                              data-zh="单文件应用（内嵌CSS+JS）：启动画面 → 借用 → 成功 + 排行榜">Full app (inline CSS + JS): splash → borrow → success + leaderboard</span>
+├── nfc-simulator.html # <span data-en="Dev tool: simulates NFC tap for testing GAS return endpoint"
+                              data-ja="開発用: NFCタップをシミュレートしてGAS返却をテスト"
+                              data-zh="开发工具：模拟NFC触碰以测试GAS归还接口">Dev tool: simulates NFC tap for testing GAS return endpoint</span>
+├── sfc_logo.png       # <span data-en="Keio SFC logo" data-ja="慶應SFCロゴ" data-zh="庆应SFC标志">Keio SFC logo</span>
+└── megloo_logo.png    # <span data-en="Megloo project logo" data-ja="Meglooプロジェクトロゴ" data-zh="Megloo项目标志">Megloo project logo</span></pre>
+    <div class="table-wrap">
+      <table>
+        <tr><th data-en="Feature" data-ja="機能" data-zh="功能">Feature</th><th data-en="Detail" data-ja="詳細" data-zh="详情">Detail</th></tr>
+        <tr><td data-en="Entry" data-ja="入口" data-zh="入口">Entry</td><td><span data-en="QR code with ?id=C-001 parameter" data-ja="QRコード（?id=C-001パラメータ付き）" data-zh="QR码（含 ?id=C-001 参数）">QR code with <code>?id=C-001</code> parameter</span></td></tr>
+        <tr><td data-en="Splash" data-ja="スプラッシュ" data-zh="启动画面">Splash</td><td data-en="Green fullscreen Re:Turn + welcome, 1.8s fade-out" data-ja="緑色のフルスクリーン Re:Turn + ウェルカム、1.8秒でフェードアウト" data-zh="绿色全屏 Re:Turn + 欢迎语，1.8秒淡出">Green fullscreen "Re:Turn" + welcome message, 1.8s fade-out</td></tr>
+        <tr><td data-en="GAS Call" data-ja="GAS通信" data-zh="GAS调用">GAS Call</td><td><code>POST borrow</code> <span data-en="with userId + containerId" data-ja="userId + containerId" data-zh="userId + containerId">with <code>userId</code> + <code>containerId</code></span></td></tr>
+        <tr><td data-en="Success View" data-ja="成功画面" data-zh="成功界面">Success View</td><td data-en="CO2 counter animation (94g/container), eco metaphor" data-ja="CO2削減量カウンターアニメーション（1容器=94g）、環境メタファー" data-zh="CO2减排计数器动画（每容器94g）、环保比喻文字">CO2 counter animation (94g/container), eco metaphor text</td></tr>
+        <tr><td data-en="Leaderboard" data-ja="ランキング" data-zh="排行榜">Leaderboard</td><td data-en="Dark card with slam-in animation + confetti + shake" data-ja="ダークカード + 叩き込みアニメーション + 紙吹雪 + 振動" data-zh="深色卡片 + 撞击入场动画 + 彩纸特效 + 震屏效果">Dark card with slam-in animation + confetti + shake effect</td></tr>
+        <tr><td data-en="Name Edit" data-ja="名前編集" data-zh="昵称编辑">Name Edit</td><td data-en="8-char uppercase modal, saves to localStorage + GAS" data-ja="8文字大文字モーダル、localStorage + GASに保存" data-zh="8位大写字母弹窗，保存至 localStorage + GAS">8-char uppercase modal, saves to localStorage + GAS <code>updateName</code></td></tr>
+        <tr><td data-en="LIFF Auth" data-ja="LIFF認証" data-zh="LIFF认证">LIFF Auth</td><td data-en="Full LIFF init → ID token → login flow; localhost bypass for dev" data-ja="LIFF init → IDトークン → ログインフロー（開発時はlocalhostバイパス可）" data-zh="完整 LIFF init → ID token → 登录流程（开发时支持 localhost 绕过）">Full LIFF init → ID token → login flow; localhost bypass for dev</td></tr>
+      </table>
+    </div>
+    <p style="margin-top:12px;color:var(--text-secondary);font-size:.88rem">
+      <strong data-en="Flow:" data-ja="フロー:" data-zh="流程:">Flow:</strong>
+      <span data-en="QR scan → LIFF opens → splash fades → student sees container ID → taps はい → GAS borrow → confetti + leaderboard slam-in"
+            data-ja="QR読取 → LIFF起動 → スプラッシュ → 容器ID確認 → はいタップ → GAS borrow → 紙吹雪 + ランキング"
+            data-zh="扫码 → LIFF打开 → 启动画面淡出 → 看到容器ID → 点击はい → GAS borrow → 彩纸 + 排行榜">QR scan → LIFF opens → splash fades → student sees container ID → taps "はい" → GAS borrow → confetti + leaderboard slam-in</span>
+    </p>
+  </div>
+
+  <!-- 1b. Dashboard LIFF -->
+  <div class="card">
+    <h4 data-en="1b. Dashboard LIFF (User Status)"
+        data-ja="1b. Dashboard LIFF（ユーザー状態確認）"
+        data-zh="1b. Dashboard LIFF（用户状态仪表盘）">1b. Dashboard LIFF (User Status Dashboard)</h4>
+    <p class="repo">
+      <span data-en="Repo:" data-ja="リポジトリ:" data-zh="仓库:">Repo:</span>
+      <a href="https://github.com/Joe-Xuu/return-incentive-collection-system" target="_blank">Joe-Xuu/return-incentive-collection-system</a>
+      &nbsp;·&nbsp;
+      <span data-en="LIFF ID:" data-ja="LIFF ID:" data-zh="LIFF ID:">LIFF ID:</span> <code>2008626930-pLAvndnp</code>
+    </p>
+    <pre>
+return-incentive-collection-system/
+├── index.html                     # <span data-en="App shell: Profile + Current Borrowing + Task Center"
+                                          data-ja="アプリシェル: プロフィール + 借出中 + タスクセンター"
+                                          data-zh="应用外壳：个人资料 + 当前借用 + 任务中心">App shell: Profile + Current Borrowing + Task Center</span>
+├── style.css                      # <span data-en="Light/fresh theme, CSS variables, mobile-first"
+                                          data-ja="ライト/フレッシュテーマ、CSS変数、モバイルファースト"
+                                          data-zh="清新浅色主题、CSS变量、移动端优先">Light/fresh theme, CSS variables, mobile-first</span>
+├── app.js                         # <span data-en="LIFF init, GAS fetch, render logic, points = usageCount × 10"
+                                          data-ja="LIFF init、GASデータ取得、表示、ポイント = usageCount × 10"
+                                          data-zh="LIFF初始化、GAS数据获取、渲染、积分 = usageCount × 10">LIFF init, GAS fetch, render logic, points = usageCount × 10</span>
+└── line-entry/
+    ├── rich-menu-preview.html     # <span data-en="Canvas PNG generator for Rich Menu (2500×843)"
+                                          data-ja="リッチメニュー用Canvas PNGジェネレーター（2500×843）"
+                                          data-zh="Rich Menu Canvas PNG生成器（2500×843）">Canvas PNG generator for Rich Menu (2500×843)</span>
+    └── rich-menu-config.json      # <span data-en="Single full-width button tap area"
+                                          data-ja="シングル全幅ボタンのタップ領域"
+                                          data-zh="单按钮全宽点击区域">Single full-width button tap area</span></pre>
+    <div class="table-wrap">
+      <table>
+        <tr><th data-en="Feature" data-ja="機能" data-zh="功能">Feature</th><th data-en="Detail" data-ja="詳細" data-zh="详情">Detail</th></tr>
+        <tr><td data-en="Entry" data-ja="入口" data-zh="入口">Entry</td><td data-en="LINE Rich Menu button → LIFF URL" data-ja="LINEリッチメニューボタン → LIFF URL" data-zh="LINE Rich Menu 按钮 → LIFF URL">LINE Rich Menu button → LIFF URL</td></tr>
+        <tr><td data-en="Profile Card" data-ja="プロフィールカード" data-zh="个人资料卡">Profile Card</td><td data-en="Avatar + display name + masked user ID" data-ja="アバター + 表示名 + マスク済みユーザーID" data-zh="头像 + 显示名称 + 脱敏用户ID">Avatar + display name + masked user ID</td></tr>
+        <tr><td data-en="Stats" data-ja="統計" data-zh="统计">Stats</td><td data-en="Points (= usageCount × 10) + Total Uses" data-ja="ポイント（= usageCount × 10）+ 総利用回数" data-zh="积分（= usageCount × 10）+ 总使用次数">Points (= usageCount × 10) + Total Uses</td></tr>
+        <tr><td data-en="Current Borrowing" data-ja="借出中容器" data-zh="当前借用">Current Borrowing</td><td data-en="List of unreturned containers with borrow time, or All cleared!" data-ja="未返却容器のリスト（借出時刻付き）、または All cleared!" data-zh="未归还容器列表（含借用时间），或 All cleared!">List of unreturned containers with borrow time, or "All cleared!"</td></tr>
+        <tr><td data-en="Task Center" data-ja="タスクセンター" data-zh="任务中心">Task Center</td><td data-en='Placeholder: "Intensive Collection" map/lock-acquire (coming soon)' data-ja="プレースホルダー: 「集中回収」マップ/ロック獲得（近日公開）" data-zh="占位符：「集中回收」地图/锁定获取（即将推出）">Placeholder: "Intensive Collection" map/lock-acquire (coming soon)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2. GAS Backend -->
+  <div class="card">
+    <h4 data-en="2. GAS Backend (API Server)" data-ja="2. GAS バックエンド（APIサーバー）" data-zh="2. GAS 后端（API 服务器）">2. GAS Backend (API Server)</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th data-en="What" data-ja="機能" data-zh="功能">What</th><th data-en="Action" data-ja="アクション" data-zh="动作">Action</th><th data-en="Method" data-ja="メソッド" data-zh="方法">Method</th><th data-en="Called By" data-ja="呼出元" data-zh="调用方">Called By</th><th data-en="Description" data-ja="説明" data-zh="说明">Description</th></tr>
+        <tr><td data-en="Borrow" data-ja="貸出" data-zh="借用">Borrow</td><td><code>borrow</code></td><td>POST</td><td data-en="NFC/Raspi" data-ja="NFC/Raspi" data-zh="NFC/Raspi">NFC/Raspi</td><td data-en="Record borrow, update user count, push LINE confirmation" data-ja="貸出記録、ユーザーカウント更新、LINE確認通知" data-zh="记录借用、更新用户计数、推送LINE确认">Record borrow, update user count, push LINE confirmation</td></tr>
+        <tr><td data-en="Return" data-ja="返却" data-zh="归还">Return</td><td><code>return</code></td><td>POST</td><td data-en="NFC/Raspi" data-ja="NFC/Raspi" data-zh="NFC/Raspi">NFC/Raspi</td><td data-en="Record return via NFC→containerId lookup, push LINE confirmation" data-ja="NFC→containerId解決で返却記録、LINE確認通知" data-zh="通过NFC→containerId映射归还、推送LINE确认">Record return via NFC→containerId lookup, push LINE confirmation</td></tr>
+        <tr><td data-en="Update Name" data-ja="名前更新" data-zh="更新名称">Update Name</td><td><code>updateName</code></td><td>POST</td><td data-en="LIFF Frontend" data-ja="LIFFフロントエンド" data-zh="LIFF前端">LIFF Frontend</td><td data-en="Update user display name in Users sheet" data-ja="Usersシートの表示名を更新" data-zh="更新Users表中的显示名称">Update user display name in Users sheet</td></tr>
+        <tr><td data-en="Dashboard" data-ja="ダッシュボード" data-zh="仪表盘">Dashboard</td><td><code>getDashboard</code></td><td>POST/GET</td><td data-en="LIFF Frontend" data-ja="LIFFフロントエンド" data-zh="LIFF前端">LIFF Frontend</td><td data-en="Return userName, usageCount, currently borrowed items" data-ja="userName、usageCount、借出中アイテムを返す" data-zh="返回userName、usageCount、当前借用项">Return userName, usageCount, currently borrowed items</td></tr>
+        <tr><td data-en="Stats" data-ja="全体統計" data-zh="全局统计">Stats</td><td><code>getStats</code></td><td>GET</td><td data-en="Raspi Dashboard" data-ja="Raspi表示" data-zh="Raspi显示">Raspi Dashboard</td><td data-en="Return totalBorrows + top 5 leaderboard" data-ja="totalBorrows + トップ5ランキング" data-zh="返回totalBorrows + 前5排行榜">Return totalBorrows + top 5 leaderboard</td></tr>
+      </table>
+    </div>
+    <p style="margin-top:12px;font-size:.88rem;color:var(--text-secondary)">
+      <strong data-en="Deploy:" data-ja="デプロイ先:" data-zh="部署:">Deploy:</strong>
+      <span data-en="Google Apps Script → exec URL"
+            data-ja="Google Apps Script → exec URL"
+            data-zh="Google Apps Script → exec URL">Google Apps Script → <span class="protected-link" data-key="gasEndpoint">***HIDDEN***</span></span>
+      &nbsp;·&nbsp;
+      <strong data-en="Code:" data-ja="コード:" data-zh="代码:">Code:</strong>
+      <span data-en="Google Apps Script Editor (see GAS Code Reference below)"
+            data-ja="Google Apps Scriptエディタ（GASコードリファレンス参照）"
+            data-zh="Google Apps Script 编辑器（参见GAS代码参考）">Google Apps Script Editor (<span class="protected-link" data-key="gasEditor">***HIDDEN***</span>)</span>
+    </p>
+  </div>
+
+  <!-- 3. Google Sheets -->
+  <div class="card">
+    <h4 data-en="3. Google Sheets (Database)" data-ja="3. Google Sheets（データベース）" data-zh="3. Google Sheets（数据库）">3. Google Sheets (Database)</h4>
+    <p style="margin-bottom:12px">
+      <strong data-en="Spreadsheet ID:" data-ja="スプレッドシートID:" data-zh="表格ID:">Spreadsheet ID:</strong>
+      <span class="protected-link" data-key="spreadsheetId">***HIDDEN***</span>
+      &nbsp;&nbsp;
+      <span class="protected-link" data-key="googleSheets" style="font-size:.82rem">📊 Open Sheets</span>
+    </p>
+    <div class="table-wrap">
+      <table>
+        <tr><th data-en="Sheet" data-ja="シート" data-zh="表">Sheet</th><th data-en="Columns" data-ja="カラム" data-zh="列">Columns</th><th data-en="Purpose" data-ja="用途" data-zh="用途">Purpose</th></tr>
+        <tr><td><code>Users</code></td><td><code>userId</code>, <code>score</code>, <code>userName</code>, <code>lastActive</code></td><td data-en="User registry & global stats" data-ja="ユーザー登録 & 全体統計" data-zh="用户注册 & 全局统计">User registry & global stats</td></tr>
+        <tr><td><code>Logs</code></td><td><code>recordId</code>, <code>containerId</code>, <code>userId</code>, <code>borrowTimestamp</code>, <code>returnTimestamp</code>, <code>status</code>, <code>notes</code></td><td data-en="All borrow/return transactions" data-ja="全貸出・返却トランザクション" data-zh="所有借用/归还记录">All borrow/return transactions</td></tr>
+        <tr><td><code>Mapping</code></td><td><code>nfcId</code>, <code>containerId</code></td><td data-en="NFC tag → container ID lookup" data-ja="NFCタグ → 容器ID マッピング" data-zh="NFC标签 → 容器ID 映射">NFC tag → container ID lookup</td></tr>
+      </table>
+    </div>
+    <p style="font-size:.85rem;color:var(--text-secondary)">
+      <span data-en="Status values in Logs:" data-ja="Logsのステータス値:" data-zh="Logs状态值:">Status values in Logs:</span>
+      <code>BORROWED</code>, <code>RETURNED</code>, <code>ERROR_CLOSED</code>, <code>ERROR_RETURN</code>
+    </p>
+  </div>
+
+  <!-- 4. NFC + Raspi -->
+  <div class="card">
+    <h4 data-en="4. NFC + Raspberry Pi Station" data-ja="4. NFC + Raspberry Pi ステーション" data-zh="4. NFC + Raspberry Pi 站点">4. NFC + Raspberry Pi Station (Return & Leaderboard)</h4>
+    <p class="repo">
+      <span data-en="Repo:" data-ja="リポジトリ:" data-zh="仓库:">Repo:</span>
+      <a href="https://github.com/Joe-Xuu/return-system" target="_blank">Joe-Xuu/return-system</a> (private)
+      &nbsp;·&nbsp;
+      <span data-en="GitFront mirror:" data-ja="GitFrontミラー:" data-zh="GitFront镜像:">GitFront mirror:</span>
+      <a href="https://gitfront.io/r/joe-xuu/c8eP5yts7JdF/return-system/" target="_blank">gitfront.io</a>
+    </p>
+    <div class="table-wrap">
+      <table>
+        <tr><th data-en="Process" data-ja="プロセス" data-zh="进程">Process</th><th data-en="File" data-ja="ファイル" data-zh="文件">File</th><th data-en="Role" data-ja="役割" data-zh="角色">Role</th></tr>
+        <tr><td><span data-en="NFC Daemon" data-ja="NFCデーモン" data-zh="NFC 守护进程">NFC Daemon</span></td><td><code>return_core.py</code></td><td data-en="Continuous NFC scanning, local Flask trigger, async GAS POST" data-ja="連続NFCスキャン、ローカルFlaskトリガー、非同期GAS POST" data-zh="持续NFC标签扫描、本地Flask触发、异步GAS POST">Continuous NFC tag scanning, local Flask trigger, async GAS POST</td></tr>
+        <tr><td><span data-en="Flask Server" data-ja="Flaskサーバー" data-zh="Flask 服务器">Flask Server</span></td><td><code>app.py</code></td><td data-en="Web UI server + SSE push + leaderboard display" data-ja="Web UI配信 + SSEプッシュ + ランキング表示" data-zh="Web UI服务 + SSE推送 + 排行榜显示">Web UI server + SSE push + leaderboard display</td></tr>
+      </table>
+    </div>
+    <p style="margin-top:12px;font-size:.88rem;color:var(--text-secondary)">
+      <strong data-en="Design:" data-ja="設計:" data-zh="设计:">Design:</strong>
+      <span data-en="Two-process — NFC daemon (bare-metal, 20ms scan) + Flask/SSE server. SSE pushes to browser in &lt;200ms from tag tap."
+            data-ja="2プロセス — NFCデーモン（ベアメタル、20msスキャン）+ Flask/SSEサーバー。タグタップから200ms未満でSSEがブラウザにプッシュ。"
+            data-zh="双进程 — NFC守护进程（裸金属，20ms扫描）+ Flask/SSE服务器。标签触碰后<200ms内SSE推送到浏览器。">Two-process — NFC daemon (bare-metal, 20ms scan) + Flask/SSE server. SSE pushes to browser in &lt;200ms from tag tap.</span>
+    </p>
+  </div>
+
+  <!-- 5. LINE Bot -->
+  <div class="card">
+    <h4 data-en="5. LINE Bot (Push Notifications)" data-ja="5. LINE Bot（プッシュ通知）" data-zh="5. LINE Bot（推送通知）">5. LINE Bot (Push Notifications)</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th data-en="What" data-ja="通知" data-zh="通知">What</th><th data-en="Trigger" data-ja="トリガー" data-zh="触发条件">Trigger</th><th data-en="Message" data-ja="メッセージ" data-zh="消息内容">Message</th></tr>
+        <tr><td data-en="Borrow Confirm" data-ja="貸出確認" data-zh="借用确认">Borrow Confirm</td><td data-en="After handleBorrow" data-ja="handleBorrow 後" data-zh="handleBorrow 后">After <code>handleBorrow</code></td><td data-en="User rank + borrow count + return deadline" data-ja="ランク + 貸出回数 + 返却期限" data-zh="排名 + 借用次数 + 归还期限">User rank + borrow count + return deadline</td></tr>
+        <tr><td data-en="Return Confirm" data-ja="返却確認" data-zh="归还确认">Return Confirm</td><td data-en="After handleReturn" data-ja="handleReturn 後" data-zh="handleReturn 后">After <code>handleReturn</code></td><td data-en="Return acknowledgement" data-ja="返却完了通知" data-zh="归还确认">Return acknowledgement</td></tr>
+        <tr><td data-en="NFC Miss Warning" data-ja="NFC読取失敗警告" data-zh="NFC读取失败警告">NFC Miss Warning</td><td data-en="ERROR_CLOSED detected" data-ja="ERROR_CLOSED 検出時" data-zh="检测到 ERROR_CLOSED"><code>ERROR_CLOSED</code> detected</td><td data-en="Warns previous borrower about failed NFC scan" data-ja="前の利用者にNFC読取失敗の可能性を警告" data-zh="警告前一位借用者NFC可能读取失败">Warns previous borrower about failed NFC scan</td></tr>
+      </table>
+    </div>
+    <p style="font-size:.85rem;color:var(--text-secondary);margin-top:8px">
+      <span data-en="Channel: LINE Developers Console &nbsp;·&nbsp; Implementation: sendLineMessage() in GAS"
+            data-ja="チャネル: LINE Developersコンソール &nbsp;·&nbsp; 実装: GASのsendLineMessage()"
+            data-zh="渠道: LINE Developers Console &nbsp;·&nbsp; 实现: GAS中的sendLineMessage()">Channel: LINE Developers Console &nbsp;·&nbsp; Implementation: <code>sendLineMessage()</code> in GAS</span>
+    </p>
+  </div>
+</section>
+
+<!-- ===== API Contracts ===== -->
+<section id="api">
+  <h2 data-en="API Contracts" data-ja="API仕様" data-zh="API 合约">API Contracts</h2>
+
+  <div class="card">
+    <h4>getDashboard</h4>
+    <div class="api-block">
+<span data-en="Request:  GET ?action=getDashboard&userId=&lt;userId&gt;&userName=&lt;displayName&gt;"
+      data-ja="Request:  GET ?action=getDashboard&userId=&lt;userId&gt;&userName=&lt;displayName&gt;"
+      data-zh="请求:  GET ?action=getDashboard&userId=&lt;userId&gt;&userName=&lt;displayName&gt;">Request:  GET ?action=getDashboard&userId=&lt;userId&gt;&userName=&lt;displayName&gt;</span>
+<span data-en='Response: { status:"success", data:{ userName:string, usageCount:number, borrowedItems:[{containerId, borrowTime}] } }'
+      data-ja='Response: { status:"success", data:{ userName:string, usageCount:number, borrowedItems:[{containerId, borrowTime}] } }'
+      data-zh='响应: { status:"success", data:{ userName:string, usageCount:number, borrowedItems:[{containerId, borrowTime}] } }'>Response: { status: "success", data: { userName: string, usageCount: number, borrowedItems: [{ containerId, borrowTime }] } }</span></div>
+  </div>
+
+  <div class="card">
+    <h4>getStats</h4>
+    <div class="api-block">
+<span data-en="Request:  GET ?action=getStats"
+      data-ja="Request:  GET ?action=getStats"
+      data-zh="请求:  GET ?action=getStats">Request:  GET ?action=getStats</span>
+<span data-en='Response: { status:"success", totalBorrows:number, leaderboard:[{rank,name,score}] }'
+      data-ja='Response: { status:"success", totalBorrows:number, leaderboard:[{rank,name,score}] }'
+      data-zh='响应: { status:"success", totalBorrows:number, leaderboard:[{rank,name,score}] }'>Response: { status: "success", totalBorrows: number, leaderboard: [{ rank, name, score }] }</span></div>
+  </div>
+
+  <div class="card">
+    <h4>borrow</h4>
+    <div class="api-block">
+<span data-en='Request:  POST { action:"borrow", userId:string, containerId:string }'
+      data-ja='Request:  POST { action:"borrow", userId:string, containerId:string }'
+      data-zh='请求:  POST { action:"borrow", userId:string, containerId:string }'>Request:  POST { action: "borrow", userId: string, containerId: string }</span>
+<span data-en='Response: { status:"success", action:"borrow", borrowCount:number, isNewUser:boolean, userRank:number, leaderboard:[{rank,name,score}] }'
+      data-ja='Response: { status:"success", action:"borrow", borrowCount:number, isNewUser:boolean, userRank:number, leaderboard:[{rank,name,score}] }'
+      data-zh='响应: { status:"success", action:"borrow", borrowCount:number, isNewUser:boolean, userRank:number, leaderboard:[{rank,name,score}] }'>Response: { status: "success", action: "borrow", borrowCount: number, isNewUser: boolean, userRank: number, leaderboard: [{ rank, name, score }] }</span></div>
+  </div>
+
+  <div class="card">
+    <h4>return</h4>
+    <div class="api-block">
+<span data-en='Request:  POST { action:"return", nfcId:string }'
+      data-ja='Request:  POST { action:"return", nfcId:string }'
+      data-zh='请求:  POST { action:"return", nfcId:string }'>Request:  POST { action: "return", nfcId: string }</span>
+<span data-en='Response: { status:"success", action:"return", type:"normal_return"|"unborrowed_return", userId?:string }'
+      data-ja='Response: { status:"success", action:"return", type:"normal_return"|"unborrowed_return", userId?:string }'
+      data-zh='响应: { status:"success", action:"return", type:"normal_return"|"unborrowed_return", userId?:string }'>Response: { status: "success", action: "return", type: "normal_return" | "unborrowed_return", userId?: string }</span></div>
+  </div>
+
+  <div class="card">
+    <h4>updateName</h4>
+    <div class="api-block">
+<span data-en='Request:  POST { action:"updateName", userId:string, userName:string }'
+      data-ja='Request:  POST { action:"updateName", userId:string, userName:string }'
+      data-zh='请求:  POST { action:"updateName", userId:string, userName:string }'>Request:  POST { action: "updateName", userId: string, userName: string }</span>
+<span data-en='Response: { status:"success", action:"updateName" }'
+      data-ja='Response: { status:"success", action:"updateName" }'
+      data-zh='响应: { status:"success", action:"updateName" }'>Response: { status: "success", action: "updateName" }</span></div>
+  </div>
+</section>
+
+<!-- ===== Repo Map ===== -->
+<section id="repos">
+  <h2 data-en="Repo Map" data-ja="リポジトリマップ" data-zh="仓库地图">Repo Map</h2>
+  <div class="table-wrap">
+    <table>
+      <tr><th data-en="Repo" data-ja="リポジトリ" data-zh="仓库">Repo</th><th data-en="What" data-ja="内容" data-zh="内容">What</th><th>GitHub</th></tr>
+      <tr><td><strong data-en="Dashboard LIFF" data-ja="Dashboard LIFF" data-zh="Dashboard LIFF">Dashboard LIFF</strong></td><td data-en="User status dashboard" data-ja="ユーザー状態ダッシュボード" data-zh="用户状态仪表盘">User status dashboard</td><td><a href="https://github.com/Joe-Xuu/return-incentive-collection-system" target="_blank">Joe-Xuu/return-incentive-collection-system</a></td></tr>
+      <tr><td><strong data-en="Borrow LIFF" data-ja="Borrow LIFF" data-zh="Borrow LIFF">Borrow LIFF</strong></td><td data-en="Student borrow screen" data-ja="学生用貸出画面" data-zh="学生借用界面">Student borrow screen</td><td><a href="https://github.com/Joe-Xuu/return-liff-frontend" target="_blank">Joe-Xuu/return-liff-frontend</a></td></tr>
+      <tr><td><strong data-en="Raspi Station" data-ja="Raspi Station" data-zh="Raspi 站点">Raspi Station</strong></td><td data-en="NFC daemon + Flask SSE + leaderboard" data-ja="NFCデーモン + Flask SSE + ランキング" data-zh="NFC守护进程 + Flask SSE + 排行榜">NFC daemon + Flask SSE + leaderboard</td><td><a href="https://github.com/Joe-Xuu/return-system" target="_blank">Joe-Xuu/return-system</a> (private)</td></tr>
+      <tr><td><strong data-en="Landscape" data-ja="Landscape" data-zh="Landscape">Landscape</strong></td><td data-en="Architecture overview (this page)" data-ja="アーキテクチャ概要（本ページ）" data-zh="架构总览（本页面）">Architecture overview (this page)</td><td><a href="https://github.com/Joe-Xuu/return-system-landscape" target="_blank">Joe-Xuu/return-system-landscape</a></td></tr>
+      <tr><td><strong data-en="GAS Backend" data-ja="GAS Backend" data-zh="GAS 后端">GAS Backend</strong></td><td data-en="Google Apps Script API server" data-ja="Google Apps Script APIサーバー" data-zh="Google Apps Script API服务器">Google Apps Script API server</td><td><span class="protected-link" data-key="gasEditor">***HIDDEN***</span></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ===== GAS Code Reference ===== -->
+<section id="gas-code">
+  <h2 data-en="GAS Code Reference" data-ja="GASコードリファレンス" data-zh="GAS 代码参考">GAS Code Reference</h2>
+  <p style="color:var(--text-secondary);margin-bottom:16px;font-size:.9rem"
+     data-en="Full GAS backend code (as of 2026-06-22). When editing, copy from here → paste into Google Apps Script Editor → Deploy as Web App."
+     data-ja="2026-06-22時点の完全なGASバックエンドコード。編集時は、ここからコピー → Google Apps Scriptエディタに貼り付け → Webアプリとしてデプロイ。"
+     data-zh="截至2026-06-22的完整GAS后端代码。编辑时，从此处复制 → 粘贴到Google Apps Script编辑器 → 部署为Web应用。">
+    Full GAS backend code (as of 2026-06-22). When editing, copy from here → paste into Google Apps Script Editor → Deploy as Web App.
+  </p>
+  <details>
+    <summary data-en="Click to expand — Full GAS Code" data-ja="クリックで展開 — 完全なGASコード" data-zh="点击展开 — 完整GAS代码">Click to expand — Full GAS Code</summary>
+    <pre style="border-radius:0 0 var(--radius) var(--radius);max-height:500px;overflow-y:auto">
+<span style="color:#676e95">// ====== Configuration ======</span>
+<span style="color:#c792ea">const</span> SPREADSHEET_ID = <span style="color:#c3e88d">'***HIDDEN***'</span>;
+<span style="color:#c792ea">const</span> LINE_CHANNEL_ACCESS_TOKEN = <span style="color:#c3e88d">'***HIDDEN***'</span>;
+<span style="color:#c792ea">const</span> LOGS_SHEET_NAME = <span style="color:#c3e88d">'Logs'</span>;
+<span style="color:#c792ea">const</span> USERS_SHEET_NAME = <span style="color:#c3e88d">'Users'</span>;
+<span style="color:#c792ea">const</span> MAPPING_SHEET_NAME = <span style="color:#c3e88d">'Mapping'</span>;
+
+<span style="color:#676e95">// ====== POST Router ======</span>
+<span style="color:#c792ea">function</span> <span style="color:#82aaff">doPost</span>(e) {
+  <span style="color:#c792ea">try</span> {
+    <span style="color:#c792ea">const</span> params = JSON.parse(e.postData.contents);
+    <span style="color:#c792ea">const</span> action = params.action;
+    <span style="color:#c792ea">let</span> result = {};
+    <span style="color:#c792ea">if</span> (action === <span style="color:#c3e88d">'borrow'</span>) {
+      result = <span style="color:#82aaff">handleBorrow</span>(params.userId, params.containerId);
+    } <span style="color:#c792ea">else if</span> (action === <span style="color:#c3e88d">'return'</span>) {
+      <span style="color:#c792ea">const</span> containerId = <span style="color:#82aaff">getContainerIdByNfc</span>(params.nfcId);
+      <span style="color:#c792ea">if</span> (!containerId) {
+        <span style="color:#c792ea">return</span> ContentService.createTextOutput(
+          JSON.stringify({ status: <span style="color:#c3e88d">'error'</span>, message: <span style="color:#c3e88d">'NFC unregistered'</span> })
+        ).setMimeType(ContentService.MimeType.JSON);
+      }
+      result = <span style="color:#82aaff">handleReturn</span>(containerId);
+    } <span style="color:#c792ea">else if</span> (action === <span style="color:#c3e88d">'updateName'</span>) {
+      result = <span style="color:#82aaff">updateUserName</span>(params.userId, params.userName);
+    } <span style="color:#c792ea">else if</span> (action === <span style="color:#c3e88d">'getDashboard'</span>) {
+      result = <span style="color:#82aaff">getDashboard</span>(params.userId, params.userName);
+    } <span style="color:#c792ea">else</span> {
+      <span style="color:#c792ea">throw new</span> Error(<span style="color:#c3e88d">"Unknown action type"</span>);
+    }
+    <span style="color:#c792ea">return</span> ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  } <span style="color:#c792ea">catch</span> (error) {
+    <span style="color:#c792ea">return</span> ContentService.createTextOutput(
+      JSON.stringify({ status: <span style="color:#c3e88d">'error'</span>, message: error.toString() })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+<span style="color:#676e95">// ====== GET Router ======</span>
+<span style="color:#c792ea">function</span> <span style="color:#82aaff">doGet</span>(e) {
+  <span style="color:#c792ea">if</span> (e.parameter && e.parameter.action === <span style="color:#c3e88d">'getStats'</span>) {
+    <span style="color:#c792ea">return</span> <span style="color:#82aaff">getGlobalStats</span>();
+  } <span style="color:#c792ea">else if</span> (e.parameter && e.parameter.action === <span style="color:#c3e88d">'getDashboard'</span>) {
+    <span style="color:#c792ea">const</span> result = <span style="color:#82aaff">getDashboard</span>(e.parameter.userId, e.parameter.userName);
+    <span style="color:#c792ea">return</span> ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+<span style="color:#676e95">// ====== Global Stats (for Raspi leaderboard) ======</span>
+<span style="color:#c792ea">function</span> <span style="color:#82aaff">getGlobalStats</span>() {
+  <span style="color:#c792ea">const</span> ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  <span style="color:#c792ea">const</span> usersSheet = ss.getSheetByName(USERS_SHEET_NAME);
+  <span style="color:#c792ea">const</span> data = usersSheet.getDataRange().getValues();
+  <span style="color:#c792ea">let</span> totalBorrows = <span style="color:#f78c6c">0</span>;
+  <span style="color:#c792ea">let</span> users = [];
+  <span style="color:#c792ea">for</span> (<span style="color:#c792ea">let</span> i = <span style="color:#f78c6c">1</span>; i < data.length; i++) {
+    <span style="color:#c792ea">if</span> (!data[i][<span style="color:#f78c6c">0</span>]) <span style="color:#c792ea">continue</span>;
+    <span style="color:#c792ea">let</span> score = Number(data[i][<span style="color:#f78c6c">1</span>]) || <span style="color:#f78c6c">0</span>;
+    totalBorrows += score;
+    users.push({
+      name: data[i][<span style="color:#f78c6c">2</span>] || <span style="color:#c3e88d">"ECO PLAYER"</span>,
+      score: score,
+      lastActive: <span style="color:#c792ea">new</span> Date(data[i][<span style="color:#f78c6c">3</span>]).getTime() || <span style="color:#f78c6c">0</span>
+    });
+  }
+  users.sort((a, b) =>
+    b.score !== a.score ? b.score - a.score : a.lastActive - b.lastActive
+  );
+  <span style="color:#c792ea">let</span> top5 = users.slice(<span style="color:#f78c6c">0</span>, <span style="color:#f78c6c">5</span>).map((u, i) => ({
+    rank: i + <span style="color:#f78c6c">1</span>, name: u.name, score: u.score
+  }));
+  <span style="color:#c792ea">return</span> ContentService.createTextOutput(JSON.stringify({
+    status: <span style="color:#c3e88d">'success'</span>,
+    totalBorrows: totalBorrows,
+    leaderboard: top5
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+<span style="color:#676e95">// ... (handleBorrow, handleReturn, updateUserCount, etc.)</span>
+<span style="color:#676e95">// Full code available in the README source or GAS Editor</span></pre>
+  </details>
+</section>
+
+<!-- ===== Key Design Decisions ===== -->
+<section id="decisions">
+  <h2 data-en="Key Design Decisions" data-ja="主要設計判断" data-zh="关键设计决策">Key Design Decisions</h2>
+  <div class="table-wrap">
+    <table>
+      <tr><th data-en="Decision" data-ja="判断" data-zh="决策">Decision</th><th data-en="Rationale" data-ja="理由" data-zh="理由">Rationale</th></tr>
+      <tr><td data-en="Points = usageCount × 10" data-ja="ポイント = usageCount × 10" data-zh="积分 = usageCount × 10">Points = usageCount × 10</td><td data-en="Simple, transparent — no server-side score needed" data-ja="シンプルで透明 — サーバーサイドスコア不要" data-zh="简单透明 — 无需服务端计分">Simple, transparent — no server-side score needed</td></tr>
+      <tr><td data-en="No Transaction History in LIFF" data-ja="LIFFにトランザクション履歴なし" data-zh="LIFF中无交易历史">No Transaction History in LIFF</td><td data-en="Removed until LINE API supports reliable historical data" data-ja="LINE APIが信頼できる履歴データをサポートするまで削除" data-zh="LINE API支持可靠历史数据后再恢复">Removed until LINE API supports reliable historical data</td></tr>
+      <tr><td data-en="GET for Dashboard" data-ja="DashboardにGETを使用" data-zh="Dashboard使用GET">GET for Dashboard</td><td data-en="Avoids CORS preflight overhead in LINE WebView" data-ja="LINE WebViewでのCORSプリフライトオーバーヘッド回避" data-zh="避免LINE WebView中的CORS预检开销">Avoids CORS preflight overhead in LINE WebView</td></tr>
+      <tr><td data-en="GAS batch writes (setValues)" data-ja="GASバッチ書き込み（setValues）" data-zh="GAS批量写入（setValues）">GAS batch writes (<code>setValues</code>)</td><td data-en="Single I/O for multi-cell updates, ~3× faster than per-cell" data-ja="複数セル更新を1回のI/Oで実行、セル単位より約3倍高速" data-zh="单次I/O完成多单元格更新，比逐格快约3倍">Single I/O for multi-cell updates, ~3× faster than per-cell</td></tr>
+      <tr><td data-en="Ghost occupancy detection (ERROR_CLOSED)" data-ja="ゴースト占有検出（ERROR_CLOSED）" data-zh="幽灵占用检测（ERROR_CLOSED）">Ghost occupancy detection (<code>ERROR_CLOSED</code>)</td><td data-en="Detects NFC scan failures on return, warns previous borrower" data-ja="返却時のNFCスキャン失敗を検出し、前の利用者に警告" data-zh="检测归还时NFC读取失败，警告前一位借用者">Detects NFC scan failures on return, warns previous borrower</td></tr>
+      <tr><td data-en="EN + JP bilingual messages" data-ja="日英バイリンガルメッセージ" data-zh="日英双语消息">EN + JP bilingual messages</td><td data-en="User base is Japanese university students; English fallback" data-ja="ユーザーは日本の大学生、国際対応のため英語併記" data-zh="用户为日本大学生，英语作为国际后备">User base is Japanese university students; English fallback for international</td></tr>
+      <tr><td data-en="No emoji in titles" data-ja="タイトルに絵文字なし" data-zh="标题中不使用emoji">No emoji in titles</td><td data-en="Clean, professional dashboard aesthetic" data-ja="クリーンでプロフェッショナルなUI" data-zh="简洁专业的设计风格">Clean, professional dashboard aesthetic per user preference</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ===== Quick Links ===== -->
+<section id="links">
+  <h2 data-en="Quick Links" data-ja="クイックリンク" data-zh="快速链接">Quick Links</h2>
+  <div class="table-wrap">
+    <table>
+      <tr><th data-en="Link" data-ja="リンク" data-zh="链接">Link</th><th data-en="Purpose" data-ja="用途" data-zh="用途">Purpose</th></tr>
+      <tr><td><code>liff.line.me/2008626930-AddPwDy7</code></td><td data-en="LIFF Borrow App" data-ja="LIFF Borrow App" data-zh="LIFF Borrow App">LIFF Borrow App</td></tr>
+      <tr><td><code>liff.line.me/2008626930-pLAvndnp</code></td><td data-en="LIFF Dashboard" data-ja="LIFF Dashboard" data-zh="LIFF Dashboard">LIFF Dashboard</td></tr>
+      <tr><td><span class="protected-link" data-key="gasEndpoint">***HIDDEN***</span></td><td data-en="GAS Endpoint (exec)" data-ja="GASエンドポイント (exec)" data-zh="GAS端点 (exec)">GAS Endpoint (exec)</td></tr>
+      <tr><td><span class="protected-link" data-key="gasEditor">***HIDDEN***</span></td><td data-en="GAS Editor (source)" data-ja="GASエディタ (ソース)" data-zh="GAS编辑器 (源码)">GAS Editor (source)</td></tr>
+      <tr><td><span class="protected-link" data-key="googleSheets">***HIDDEN***</span></td><td>Google Sheets</td></tr>
+      <tr><td><a href="https://github.com/Joe-Xuu/return-liff-frontend" target="_blank">github.com/Joe-Xuu/return-liff-frontend</a></td><td data-en="Borrow LIFF Repo" data-ja="Borrow LIFFリポジトリ" data-zh="Borrow LIFF 仓库">Borrow LIFF Repo</td></tr>
+      <tr><td><a href="https://github.com/Joe-Xuu/return-incentive-collection-system" target="_blank">github.com/Joe-Xuu/return-incentive-collection-system</a></td><td data-en="Dashboard LIFF Repo" data-ja="Dashboard LIFFリポジトリ" data-zh="Dashboard LIFF 仓库">Dashboard LIFF Repo</td></tr>
+      <tr><td><a href="https://github.com/Joe-Xuu/return-system" target="_blank">github.com/Joe-Xuu/return-system</a> (private)</td><td data-en="Raspi Station Repo" data-ja="Raspi Stationリポジトリ" data-zh="Raspi 站点仓库">Raspi Station Repo</td></tr>
+      <tr><td><a href="https://gitfront.io/r/joe-xuu/c8eP5yts7JdF/return-system/" target="_blank">gitfront.io/r/joe-xuu/.../return-system/</a></td><td data-en="Raspi Station (GitFront mirror)" data-ja="Raspi Station（GitFrontミラー）" data-zh="Raspi 站点（GitFront镜像）">Raspi Station (GitFront mirror)</td></tr>
+      <tr><td><a href="https://github.com/Joe-Xuu/return-system-landscape" target="_blank">github.com/Joe-Xuu/return-system-landscape</a></td><td data-en="Landscape (this page)" data-ja="Landscape（本ページ）" data-zh="Landscape（本页面）">Landscape (this page)</td></tr>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>Re:Turn System Landscape &copy; 2026 &nbsp;·&nbsp; <span data-en="Built with ♥ for Keio SFC" data-ja="慶應SFCのために♥を込めて" data-zh="为庆应SFC打造 ♥">Built with ♥ for Keio SFC</span></p>
+</footer>
+
+<!-- ===== Password Modal ===== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>🔒 <span data-en="Unlock Sensitive Links" data-ja="リンクを解除" data-zh="解锁敏感链接">Unlock Sensitive Links</span></h3>
+    <p data-en="Enter password to reveal hidden Google Sheets & GAS links."
+       data-ja="パスワードを入力してGoogle SheetsとGASのリンクを表示します。"
+       data-zh="输入密码以显示隐藏的 Google Sheets 和 GAS 链接。">Enter password to reveal hidden Google Sheets & GAS links.</p>
+    <input type="password" id="passwordInput" placeholder="Password" onkeydown="if(event.key==='Enter')unlock()">
+    <div class="error" id="errorMsg" data-en="Incorrect password. Try again." data-ja="パスワードが違います。" data-zh="密码错误，请重试。">Incorrect password. Try again.</div>
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="closeModal()" data-en="Cancel" data-ja="キャンセル" data-zh="取消">Cancel</button>
+      <button class="btn-submit" onclick="unlock()" data-en="Unlock" data-ja="解除" data-zh="解锁">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Sensitive Data (base64 encoded) =====
+const SENSITIVE = {
+  spreadsheetId: 'MTl5TDY3cGpXWEt6aE82aS1XWUVRR2FMMmZpX0VsSG1kaTdYaUwxb0NBSWc=',
+  gasEndpoint: 'aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J5Ym9oSXZGdVo3R1pDN0tWY2tyamI0bW4xU0ZGVDF3Ry1aMUFuYWJ0MDJpbDNOMDVOd2VKTmdzY3RjRmVkc2k2UVkvZXhlYw==',
+  gasEditor: 'aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS91LzAvaG9tZS9wcm9qZWN0cy8xcEVzZjdzbGZGME8yQ0N0cDF6dnJUU0Q3cnNud1lBTDFBd29UMDhTMk04eTE3UjY1TXVjcmpXU0EvZWRpdA==',
+  googleSheets: 'aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vc3ByZWFkc2hlZXRzL2QvMTl5TDY3cGpXWEt6aE82aS1XWUVRR2FMMmZpX0VsSG1kaTdYaUwxb0NBSWcvZWRpdD91c3A9c2hhcmluZw=='
+};
+
+// SHA-256 hash of the password
+const PASS_HASH = '16029b5c591a3cbf9d457b04cc9a597156d7ade4e5cd49ee6b0efcc084766aed';
+
+// ===== Language Switching =====
+let currentLang = localStorage.getItem('return-lang') || 'en';
+
+function switchLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('return-lang', lang);
+  document.documentElement.lang = lang;
+
+  // Update language buttons
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+
+  // Update all elements with data-* lang attributes
+  document.querySelectorAll('[data-' + lang + ']').forEach(el => {
+    // Only update text content for elements that have the lang attribute
+    const text = el.getAttribute('data-' + lang);
+    if (text && el.children.length === 0) {
+      el.textContent = text;
+    } else if (text) {
+      // For elements with children (like <span> inside <p>), set only the first text node
+      const firstChild = el.firstChild;
+      if (firstChild && firstChild.nodeType === 3) {
+        firstChild.textContent = text;
+      }
+    }
+  });
+
+  // Update document title
+  const titleEl = document.querySelector('title');
+  if (titleEl && titleEl.getAttribute('data-' + lang)) {
+    document.title = titleEl.getAttribute('data-' + lang);
+  }
+}
+
+// Initialize language on load
+document.addEventListener('DOMContentLoaded', () => switchLang(currentLang));
+
+// ===== Password Protection =====
+async function sha256(message) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(message);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function b64decode(str) {
+  return atob(str);
+}
+
+function togglePasswordModal() {
+  const overlay = document.getElementById('modalOverlay');
+  if (isUnlocked()) {
+    // Already unlocked — lock it
+    sessionStorage.removeItem('return-unlocked');
+    location.reload();
+    return;
+  }
+  overlay.classList.add('active');
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('errorMsg').classList.remove('show');
+  setTimeout(() => document.getElementById('passwordInput').focus(), 150);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+function isUnlocked() {
+  return sessionStorage.getItem('return-unlocked') === 'true';
+}
+
+function updateLockButton() {
+  const btn = document.getElementById('lockBtn');
+  if (isUnlocked()) {
+    btn.classList.add('unlocked');
+    btn.querySelector('.lock-icon').textContent = '🔓';
+    const labels = { en: 'Lock Links', ja: 'リンクを隠す', zh: '锁定链接' };
+    const span = btn.querySelector('span:last-child');
+    span.textContent = labels[currentLang] || 'Lock Links';
+    span.setAttribute('data-en', 'Lock Links');
+    span.setAttribute('data-ja', 'リンクを隠す');
+    span.setAttribute('data-zh', '锁定链接');
+  }
+}
+
+function revealLinks() {
+  document.querySelectorAll('.protected-link').forEach(el => {
+    const key = el.dataset.key;
+    if (key && SENSITIVE[key]) {
+      const decoded = b64decode(SENSITIVE[key]);
+      if (key === 'spreadsheetId') {
+        el.textContent = decoded;
+        el.classList.add('revealed');
+      } else if (key === 'googleSheets') {
+        el.innerHTML = '<a href="' + decoded + '" target="_blank">📊 Open Google Sheets</a>';
+        el.classList.add('revealed');
+      } else {
+        el.innerHTML = '<a href="' + decoded + '" target="_blank">' + decoded + '</a>';
+        el.classList.add('revealed');
+      }
+    }
+  });
+  updateLockButton();
+}
+
+async function unlock() {
+  const password = document.getElementById('passwordInput').value;
+  const hash = await sha256(password);
+  if (hash === PASS_HASH) {
+    sessionStorage.setItem('return-unlocked', 'true');
+    revealLinks();
+    closeModal();
+  } else {
+    document.getElementById('errorMsg').classList.add('show');
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordInput').focus();
+  }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  if (isUnlocked()) {
+    revealLinks();
+  } else {
+    updateLockButton();
+  }
+
+  // Close modal on overlay click
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Close modal on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+});
+</script>
+
+</body>
+</html>

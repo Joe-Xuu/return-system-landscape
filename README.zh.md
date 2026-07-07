@@ -139,7 +139,7 @@ return-incentive-collection-system/
 
 ### 3. Google Sheets（数据库）
 
-**表格ID:** `19yL67pjWXKzhO6i-WYEQGaL2fi_ElHmdi7XiL1oCAIg`
+**表格ID:** `***HIDDEN***`
 
 | 表 | 列 | 用途 |
 |-------|---------|---------|
@@ -664,9 +664,9 @@ function getDashboard(userId, userName) {
 |------|---------|
 | LIFF Borrow App | `https://liff.line.me/2008626930-AddPwDy7` |
 | LIFF Dashboard | `https://liff.line.me/2008626930-pLAvndnp` |
-| GAS端点 (exec) | `https://script.google.com/macros/s/AKfycbybohIvFuZ7GZC7KVckrjb4mn1SFFT1wG-Z1Anabt02il3N05NweJNgsctcFedsi6QY/exec` |
-| GAS编辑器 (源码) | `https://script.google.com/u/0/home/projects/1pEsf7slfF0O2CCtp1zvrTSD7rsnwYAL1AwoT08S2M8y17R65MucrjWSA/edit` |
-| Google Sheets | `https://docs.google.com/spreadsheets/d/19yL67pjWXKzhO6i-WYEQGaL2fi_ElHmdi7XiL1oCAIg/edit?usp=sharing` |
+| GAS端点 (exec) | `***HIDDEN***` |
+| GAS编辑器 (源码) | `***HIDDEN***` |
+| Google Sheets | `***HIDDEN***` |
 | Borrow LIFF 仓库 | `https://github.com/Joe-Xuu/return-liff-frontend` |
 | Dashboard LIFF 仓库 | `https://github.com/Joe-Xuu/return-incentive-collection-system` |
 | Raspi 站点仓库（私有） | `https://github.com/Joe-Xuu/return-system` |
