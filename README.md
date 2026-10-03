@@ -19,14 +19,14 @@ Users borrow containers via LINE LIFF, return via NFC + Raspberry Pi, earn point
 │                                                                         │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────────────────┐  │
 │  │   LINE App    │    │  NFC + Raspi │    │   Raspi Display           │  │
-│  │  (User Phone) │    │  (Borrow/Ret)│    │   (Leaderboard + CO2)     │  │
+│  │  (User Phone) │    │ (Return Stn) │    │   (Leaderboard + CO2)     │  │
 │  │               │    │              │    │                           │  │
-│  │ Borrow LIFF ──┼────┤ NFC tag scan │    │ Flask SSE ← return_core   │  │
-│  │ Dashboard ────┼──┐ │ return POST  │    │ UI polls GAS getStats     │  │
-│  └───────────────┘  │ └──────┬───────┘    └────────────┬─────────────┘  │
-│                     │        │                         │                 │
-│                     │ LIFF   │ HTTP POST               │ HTTP GET        │
-│                     │ SDK v2 │                         │                 │
+│  │ Borrow LIFF ──┼──┐ │ NFC tag scan │    │ Flask SSE ← return_core   │  │
+│  │ Dashboard ────┼──┘ │ return POST  │    │ UI polls GAS getStats     │  │
+│  └───────────────┘  └────────┬───────┘    └────────────┬─────────────┘  │
+│                              │                         │                 │
+│              LIFF SDK v2     │ HTTP POST               │ HTTP GET        │
+│              (borrow/dash)   │                         │                 │
 │                     ▼        ▼                         ▼                 │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
 │  │                   Google Apps Script (GAS)                        │  │
@@ -60,8 +60,8 @@ Users borrow containers via LINE LIFF, return via NFC + Raspberry Pi, earn point
 ### Data Flow
 
 ```
-BORROW:  NFC/Raspi → GAS doPost(action=borrow)     → Sheets(Logs+Users) → LINE Push(user)
-RETURN:  NFC/Raspi → GAS doPost(action=return)     → Sheets(Logs)      → LINE Push(user)
+BORROW:  QR scan → LIFF (browser) → GAS doPost(action=borrow)   → Sheets(Logs+Users) → LINE Push(user)
+RETURN:  NFC/Raspi → GAS doPost(action=return)                   → Sheets(Logs)      → LINE Push(user)
 DASHBOARD: User opens LIFF → GAS doGet/getDashboard → Sheets(Users+Logs) → LIFF renders
 LEADERBOARD: Raspi display → GAS doGet(getStats)   → Sheets(Users)     → Raspi renders
 ```
@@ -72,7 +72,7 @@ LEADERBOARD: Raspi display → GAS doGet(getStats)   → Sheets(Users)     → R
 
 ### 1a. Borrow LIFF (Student Borrow Screen)
 
-Appears when a student taps their NFC tag to borrow a container. QR-coded container ID is passed via URL param.
+Appears when a student scans the QR code on a container. The container ID is passed via `?id=` URL param.
 
 **Repo:** [`Joe-Xuu/return-liff-frontend`](https://github.com/Joe-Xuu/return-liff-frontend)  
 **LIFF ID:** `2008626930-AddPwDy7`
@@ -91,7 +91,7 @@ return-liff-frontend/
 | Splash | Green fullscreen "Re:Turn" + welcome message, 1.8s fade-out |
 | Borrow View | Container ID display + "はい" button |
 | GAS Call | `POST borrow` with `userId` + `containerId` |
-| Success View | CO2 counter animation (94g/container), eco metaphor text |
+| Success View | CO2 counter animation (36g/borrow, cumulative; = 1 paper container avoided, Megloo LCA), eco metaphor text |
 | Leaderboard | Dark card with slam-in animation + confetti + shake effect |
 | Name Edit | 8-char uppercase modal, saves to localStorage + GAS `updateName` |
 | LIFF Auth | Full LIFF init → ID token → login flow; localhost bypass for dev |
@@ -118,9 +118,10 @@ return-incentive-collection-system/
 | Feature | Detail |
 |--------|--------|
 | Entry | LINE Rich Menu button → LIFF URL |
-| Profile Card | Avatar + display name + masked user ID |
-| Stats | Points (= usageCount × 10) + Total Uses |
+| Profile Card | Avatar (LINE profile pic or generated) + display name + masked user ID |
+| Stats | Points (= usageCount × 10) + Total Uses + CO2 saved (= usageCount × 36g, Megloo LCA) |
 | Current Borrowing | List of unreturned containers with borrow time, or "All cleared!" |
+| Leaderboard Tab | Full campus leaderboard (top 5, fetched via `getStats`) with medal icons |
 | Task Center | Placeholder: "Intensive Collection" map/lock-acquire (coming soon) |
 | GAS Call | `GET getDashboard` with `userId` + `userName` |
 
@@ -131,7 +132,7 @@ return-incentive-collection-system/
 | Borrow | `borrow` | POST | NFC/Raspi | Record borrow, update user count, push LINE confirmation |
 | Return | `return` | POST | NFC/Raspi | Record return via NFC→containerId lookup, push LINE confirmation |
 | Update Name | `updateName` | POST | LIFF Frontend | Update user display name in Users sheet |
-| Get Dashboard | `getDashboard` | POST/GET | LIFF Frontend | Return userName, usageCount, currently borrowed items |
+| Get Dashboard | `getDashboard` | GET | LIFF Frontend | Return userName, usageCount, currently borrowed items |
 | Get Stats | `getStats` | GET | Raspi Dashboard | Return totalBorrows + top 5 leaderboard |
 
 **Deploy:** Google Apps Script → `https://script.google.com/macros/s/.../exec`
@@ -149,13 +150,13 @@ return-incentive-collection-system/
 
 **Status values in Logs:** `BORROWED`, `RETURNED`, `ERROR_CLOSED`, `ERROR_RETURN`
 
-### 4. NFC + Raspberry Pi Station (Return & Leaderboard)
+### 4. NFC + Raspberry Pi Station (Return Station & Leaderboard Display)
 
-Single Raspberry Pi with MFRC522 NFC reader, running two Python processes:
+Single Raspberry Pi with MFRC522 NFC reader, running two Python processes. **This station handles returns only** — borrowing is initiated from the LIFF browser app via QR code.
 
 | Process | File | Role |
 |---------|------|------|
-| NFC Daemon | `return_core.py` | Continuous NFC tag scanning, local Flask trigger, async GAS POST |
+| NFC Daemon | `return_core.py` | Continuous NFC tag scanning, plays audio feedback (`pw-play`), local Flask trigger, async GAS POST |
 | Flask Server | `app.py` | Web UI server + SSE push + leaderboard display |
 
 **Repo:** `https://github.com/Joe-Xuu/return-system` (private)  
@@ -178,6 +179,7 @@ return_system/
 **Data flow on NFC tag scan:**
 ```
 NFC Tag → return_core.py (MFRC522)
+          ├─[0] pw-play applepay.wav            (async subprocess, instant audio ding)
           ├─[1] POST localhost:5000/api/trigger  (0.5s timeout, fire-and-forget)
           │       └─ Flask → SSE /api/stream → Browser: instant ✅ animation
           └─[2] Thread: POST GAS action=return    (async, non-blocking)
@@ -185,9 +187,9 @@ NFC Tag → return_core.py (MFRC522)
 ```
 
 **Architecture detail — two-process design:**
-- `return_core.py` runs as a **bare-metal NFC daemon** (no Flask dependency). It scans tags every 20ms with hardware gain maxed to 48dB. On scan: fires a 0.5s timeout POST to local Flask (for instant UI feedback), then spawns a daemon thread for the slow GAS HTTP call.
+- `return_core.py` runs as a **bare-metal NFC daemon** (no Flask dependency). It scans tags every 20ms with hardware gain maxed to 48dB. On scan: (0) plays an audio ding via `pw-play` (non-blocking subprocess); (1) fires a 0.5s timeout POST to local Flask (for instant UI feedback); (2) spawns a daemon thread for the slow GAS HTTP call. A 3-second debounce prevents double-reads of the same tag.
 - `app.py` runs as a **Flask + SSE server** on port 5000. The SSE `/api/stream` endpoint keeps a persistent connection to the browser. When `/api/trigger` receives a containerId, it pushes it to all connected SSE clients immediately — the browser shows a checkmark animation with <200ms latency from tag tap.
-- After the animation, the browser fetches fresh leaderboard data from GAS `getStats`. CO2 is calculated as `totalBorrows × 94g / 1000` with animated counter + eco metaphor text.
+- After the animation, the browser fetches fresh leaderboard data from GAS `getStats`. CO2 is calculated as `totalBorrows × 36g / 1000` (= paper containers avoided, Megloo LCA) with animated counter + eco metaphor text.
 
 **Station UI (templates/index.html):**
 - Left panel: "Re:Turn" branding + NFC radar pulse animation + "容器をタッチしてください"
@@ -218,7 +220,7 @@ Response: {
   status: "success",
   data: {
     userName:       string,   // display name
-    usageCount:     number,   // total borrow count (points = usageCount × 10)
+    usageCount:     number,   // total borrow count (points = usageCount × 10; CO2 = usageCount × 36g)
     borrowedItems: [{         // currently unreturned containers
       containerId:  string,   // e.g. "C-001"
       borrowTime:   string    // e.g. "2026-06-22 12:30:00"
@@ -655,6 +657,7 @@ function getDashboard(userId, userName) {
 | Ghost occupancy detection (`ERROR_CLOSED`) | Detects NFC scan failures on return, warns previous borrower |
 | EN + JP bilingual messages | User base is Japanese university students; English fallback for international |
 | No emoji in titles | Clean, professional dashboard aesthetic per user preference |
+| CO2 = usageCount × 36g (Megloo LCA) | 36g per use = 1 single-use paper container avoided (Megloo LCA, supervised by Earth & Human Environment Forum / Univ. of Tokyo) |
 
 ---
 
